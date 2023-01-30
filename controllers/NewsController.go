@@ -20,68 +20,361 @@ func checkErr(err error, msg string) {
 }
 
 // получаем одну новость
-func GetNew(c *gin.Context) {
+func CreateNew(c *gin.Context) {
 	ticker := c.Param("ticker")
-	url := c.Param("url")
-	var chartData models.New
-	if err := db.Select("event_id", "source", "type_id", "hash").Table("events").Where("instruments.instrument_id = ? and events.url = ?", ticker, url).Joins("INNER JOIN instruments ON instruments.instrument_id = events.instrument_id").Find(&chartData).Error; err != nil {
-		fmt.Println(err)
-		c.JSON(404, gin.H{"error": "user not found"})
-	} else {
-		c.JSON(200, chartData)
+	fmt.Println(ticker)
+	status, instrument := GetInstrumentNameInstanse(ticker)
+	if !status {
+
+		fmt.Println(instrument)
+		c.JSON(404, gin.H{"error": "instrument not found"})
+		return
 	}
 
-	//	return chartData
+	fmt.Println("есть новость")
+	EventCreate := models.New{}
+	EventInstrument := models.EventInstrument{
+		Data: EventCreate,
+		Instrument: models.Instrument{
+			InstrumentID:   instrument.InstrumentID,
+			InstrumentName: instrument.InstrumentName,
+			Site:           instrument.Site,
+			Logo:           instrument.Logo,
+			Ticker:         instrument.Ticker,
+		},
+	}
+
+	fmt.Println(EventInstrument)
+	c.JSON(200, EventInstrument)
+
 }
 
-// сохраняем новость
+// получаем одну новость
+func GetNew(c *gin.Context) {
+	ticker := c.Param("ticker")
+	slug := c.Param("slug")
+	var chartData models.Events
+
+	fmt.Println(ticker, slug)
+	status, instrument := GetInstrumentNameInstanse(ticker)
+
+	if !status {
+
+		fmt.Println(instrument)
+		c.JSON(404, gin.H{"error": "instrument not found"})
+		return
+	}
+
+	if err := db.Table("events").Where("instrument_id = ? and slug = ?", instrument.InstrumentID, slug).Limit(1).Find(&chartData).Error; err != nil {
+		fmt.Println(err)
+
+		EventInstrument := models.EventInstrument{
+			// временно для записи
+			Data: models.New{
+				// TypeID:    22222,
+				// Title:     "Заголовок ",
+				// Date:      revertDateFromBase("2021-09-20"),
+				// Slug:      "какой то текст ",
+				// Hash:      "фывфыв ",
+				// EventID:   121212,
+				// Source:    "какой то текст ",
+				// Shorttext: "какой то текст ",
+				// Fulltext:  "какой то текст ",
+			},
+			Instrument: models.Instrument{
+				InstrumentID:   instrument.InstrumentID,
+				InstrumentName: instrument.InstrumentName,
+				Site:           instrument.Site,
+				Logo:           instrument.Logo,
+				Ticker:         instrument.Ticker,
+			},
+		}
+
+		fmt.Println("нет новостей")
+		fmt.Println(EventInstrument)
+		c.JSON(200, EventInstrument)
+		//	c.JSON(404, gin.H{"error": "news not found"})
+	} else {
+
+		fmt.Println("есть новость")
+		EventCreate := models.New{
+			TypeID:    chartData.TypeID,
+			Title:     chartData.Title,
+			Date:      revertDateFromBase(chartData.Date),
+			Slug:      chartData.Slug,
+			Hash:      chartData.Hash,
+			EventID:   chartData.EventID,
+			Source:    chartData.Source,
+			Shorttext: chartData.Shorttext,
+			Fulltext:  chartData.Fulltext,
+		}
+
+		EventInstrument := models.EventInstrument{
+			Data: EventCreate,
+			Instrument: models.Instrument{
+				InstrumentID:   instrument.InstrumentID,
+				InstrumentName: instrument.InstrumentName,
+				Site:           instrument.Site,
+				Logo:           instrument.Logo,
+				Ticker:         instrument.Ticker,
+			},
+		}
+
+		fmt.Println(EventInstrument)
+		c.JSON(200, EventInstrument)
+	}
+}
+
+// получаем одну новость по хэшу для редактирования
+func GetNewsHash(c *gin.Context) {
+	hash := c.Param("hash")
+
+	var chartData models.Events
+
+	// fmt.Println(ticker, slug)
+	// status, instrument := GetInstrumentNameInstanse(ticker)
+
+	// if !status {
+
+	// 	fmt.Println(instrument)
+	// 	c.JSON(404, gin.H{"error": "instrument not found"})
+	// 	return
+	// }
+
+	if err := db.Table("events").Where("hash = ? ", hash).Limit(1).Find(&chartData).Error; err != nil {
+		fmt.Println(err)
+
+		//	EventInstrument := models.EventInstrument{
+		// временно для записи
+		//	Data: models.New{
+		// TypeID:    22222,
+		// Title:     "Заголовок ",
+		// Date:      revertDateFromBase("2021-09-20"),
+		// Slug:      "какой то текст ",
+		// Hash:      "фывфыв ",
+		// EventID:   121212,
+		// Source:    "какой то текст ",
+		// Shorttext: "какой то текст ",
+		// Fulltext:  "какой то текст ",
+		//	},
+
+		//	Instrument: models.Instrument{},
+		//	}
+
+		fmt.Println("нет новостей")
+		//	fmt.Println(EventInstrument)
+		//	c.JSON(200, EventInstrument)
+		c.JSON(404, gin.H{"error": "нет новостей"})
+	} else {
+
+		error, instrument := GetInstrumentIdInstanse(chartData.InstrumentID)
+		if !error {
+
+			fmt.Println(instrument)
+			c.JSON(404, gin.H{"error": "instrument not found"})
+			return
+		}
+		fmt.Println("есть новость")
+		EventCreate := models.New{
+			TypeID:    chartData.TypeID,
+			Title:     chartData.Title,
+			Date:      revertDateFromBase(chartData.Date),
+			Slug:      chartData.Slug,
+			Hash:      chartData.Hash,
+			EventID:   chartData.EventID,
+			Source:    chartData.Source,
+			Shorttext: chartData.Shorttext,
+			Fulltext:  chartData.Fulltext,
+		}
+
+		EventInstrument := models.EventInstrument{
+			Data: EventCreate,
+			Instrument: models.Instrument{
+				InstrumentID:   instrument.InstrumentID,
+				InstrumentName: instrument.InstrumentName,
+				Site:           instrument.Site,
+				Logo:           instrument.Logo,
+				Ticker:         instrument.Ticker,
+			},
+		}
+
+		fmt.Println(EventInstrument)
+		c.JSON(200, EventInstrument)
+	}
+}
+
+// получаем одну новость
+func GetNews(c *gin.Context) {
+	ticker := c.Param("ticker")
+
+	status, instrument := GetInstrumentNameInstanse(ticker)
+
+	if !status {
+		c.JSON(404, gin.H{"error": "instrument not found"})
+		return
+	}
+
+	var news []models.News
+	if err := db.Table("events").Where("published = 1 and instrument_id = ? ", instrument.InstrumentID).Find(&news).Error; err != nil {
+		fmt.Println(err)
+		c.JSON(404, gin.H{"error": "news not found"})
+	} else {
+
+		eventInstrument := models.EventsInstrument{
+			Data: news,
+			Instrument: models.Instrument{
+				InstrumentID:   instrument.InstrumentID,
+				InstrumentName: instrument.InstrumentName,
+				Site:           instrument.Site,
+				Logo:           instrument.Logo,
+				Ticker:         instrument.Ticker,
+			},
+		}
+
+		fmt.Println(eventInstrument)
+		c.JSON(200, eventInstrument)
+	}
+}
+
+// сохраняем или обновляем новость
 func SaveNews(c *gin.Context) {
+
+	fmt.Println("SaveNews")
+
 	rand.Seed(time.Now().UnixNano())
 
 	var eventInput models.EventInput
+
 	c.Bind(&eventInput)
 	//c.Bind(&event)
+	if eventInput.Date == "" {
+		c.JSON(400, gin.H{"error": "Fields date are empty"})
+		return
+	}
 
-	if eventInput.Date != "" && eventInput.TypeID != 0 && eventInput.Source != "" && eventInput.InstrumentID != 0 &&
-		eventInput.Title != "" && eventInput.Shorttext != "" && eventInput.Fulltext != "" {
-		// Получаем уникальный урл
+	//c.JSON(201, "asdasd")
+	//return
+
+	reversed := revertDate(eventInput.Date)
+
+	fmt.Println("start")
+
+	if eventInput.Hash != "" {
+		userId := 101
 		slug := slug.Make(eventInput.Title)
-		// получаем уникальный хэш
-		hash := fmt.Sprintf("%x", md5.Sum([]byte(eventInput.Title+eventInput.Date+string(rand.Intn(50)))))
-		// Преобразуем дату  ПРиходит 01/03/2022 записываем 2019-12-29
-		re := regexp.MustCompile(`([0-9]{2})/([0-9]{2})/([0-9]{4})`)
-		rD := (re.FindAllStringSubmatch(eventInput.Date, -1))
-		reversed := fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
-
-		EventCreate := models.Events{
-			UserId:       100,
-			TypeID:       eventInput.TypeID,
+		updateData := models.Events{
 			Title:        eventInput.Title,
-			Date:         reversed,
-			InstrumentID: eventInput.InstrumentID,
-			Slug:         slug,
-			Hash:         hash,
-			Source:       eventInput.Source,
+			TypeID:       eventInput.TypeID,
 			Shorttext:    eventInput.Shorttext,
 			Fulltext:     eventInput.Fulltext,
-		}
-
-		db.Create(EventCreate)
-
-		content := &models.EventResult{
 			InstrumentID: eventInput.InstrumentID,
+			Date:         reversed,
+			Source:       eventInput.Source,
 			Slug:         slug,
-			Hash:         hash,
+			UserId:       101,
 		}
-		c.JSON(201, content)
 
-		//} else {
-		//		checkErr(err, "Insert failed")
-		//}
-		//	}
+		errorUpdate := db.Model(&updateData).Where("hash = ? and user_id = ? and published = ?", eventInput.Hash, userId, "0").Updates(updateData)
+		fmt.Println(errorUpdate)
+		if errorUpdate.RowsAffected == 0 {
 
-	} else {
-		c.JSON(400, gin.H{"error": "Fields are empty"})
+			fmt.Println("create")
+		} else {
+			content := &models.EventResult{
+				InstrumentID: eventInput.InstrumentID,
+				Slug:         slug,
+				Hash:         eventInput.Hash,
+			}
+			c.JSON(201, content)
+			return
+		}
 	}
-	//	return chartData
+
+	error, instrument := GetInstrumentInstanse(eventInput.InstrumentID)
+
+	if !error {
+		c.JSON(400, gin.H{"error": "Fields are empty"})
+	} else {
+
+		if eventInput.Date != "" && eventInput.TypeID != 0 && eventInput.Source != "" && eventInput.InstrumentID != "" &&
+			eventInput.Title != "" && eventInput.Shorttext != "" && eventInput.Fulltext != "" {
+			// Получаем уникальный урл
+			slug := slug.Make(eventInput.Title)
+			// получаем уникальный хэш
+			hash := fmt.Sprintf("%x", md5.Sum([]byte(eventInput.Title+eventInput.Date+string(rand.Intn(50)))))
+			// Преобразуем дату  ПРиходит 01/03/2022 записываем 2019-12-29
+			// re := regexp.MustCompile(`([0-9]{2})/([0-9]{2})/([0-9]{4})`)
+			// rD := (re.FindAllStringSubmatch(eventInput.Date, -1))
+			// reversed := fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
+
+			EventCreate := models.EventsResult{
+				Date:         reversed,
+				Slug:         slug,
+				Hash:         hash,
+				UserId:       100,
+				TypeID:       eventInput.TypeID,
+				Title:        eventInput.Title,
+				InstrumentID: instrument.InstrumentID,
+				Source:       eventInput.Source,
+				Shorttext:    eventInput.Shorttext,
+				Fulltext:     eventInput.Fulltext,
+				Published:    0,
+			}
+
+			db.Table("events").Create(EventCreate)
+			content := &models.EventResult{
+				InstrumentID: eventInput.InstrumentID,
+				Slug:         slug,
+				Hash:         hash,
+			}
+			c.JSON(201, content)
+		} else {
+			c.JSON(400, gin.H{"error": "Fields are empty"})
+		}
+		//	return chartData
+	}
+}
+
+// конвертируем время
+func getHash(eventInput models.EventInput) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(eventInput.Title+eventInput.Date+string(rand.Intn(50)))))
+}
+
+// конвертируем время
+func revertDate(date string) string {
+
+	fmt.Println("date " + date)
+	// re := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})`)
+	// rD := (re.FindAllStringSubmatch(date, -1))
+	// return fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
+
+	re := regexp.MustCompile(`([0-9]{2})/([0-9]{2})/([0-9]{4})`)
+	rD := (re.FindAllStringSubmatch(date, -1))
+	fmt.Println(rD)
+	fmt.Println(rD[0][3], rD[0][2], rD[0][1])
+	dateResult := fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
+
+	fmt.Println("dateResult " + dateResult)
+	return dateResult
+}
+
+// конвертируем время
+func revertDateFromBase(date string) string {
+	if date == "" {
+		return ""
+	}
+	fmt.Println("date:: " + date)
+	// re := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})`)
+	// rD := (re.FindAllStringSubmatch(date, -1))
+	// return fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
+
+	re := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})`)
+	rD := (re.FindAllStringSubmatch(date, -1))
+	fmt.Println("rD")
+	fmt.Println(rD)
+	fmt.Println(rD[0][3], rD[0][2], rD[0][1])
+	dateResult := fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
+
+	fmt.Println("dateResult:: " + dateResult)
+	return dateResult
 }
