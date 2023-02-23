@@ -2,14 +2,17 @@ package controllers
 
 import (
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
 	"moex/models"
+	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/gosimple/slug"
 )
 
@@ -31,6 +34,14 @@ func CreateNew(c *gin.Context) {
 		return
 	}
 
+	status, datePrices := InstrumentOnlyDateFromPrices(ticker)
+	if !status {
+
+		fmt.Println(instrument)
+		c.JSON(404, gin.H{"error": "date not found from prices"})
+		return
+	}
+
 	fmt.Println("есть новость")
 	EventCreate := models.New{}
 	EventInstrument := models.EventInstrument{
@@ -42,11 +53,11 @@ func CreateNew(c *gin.Context) {
 			Logo:           instrument.Logo,
 			Ticker:         instrument.Ticker,
 		},
+		PriceDate: datePrices,
 	}
 
 	fmt.Println(EventInstrument)
 	c.JSON(200, EventInstrument)
-
 }
 
 // получаем одну новость
@@ -65,22 +76,20 @@ func GetNew(c *gin.Context) {
 		return
 	}
 
+	status, datePrices := InstrumentOnlyDateFromPrices(ticker)
+	if !status {
+
+		fmt.Println(instrument)
+		c.JSON(404, gin.H{"error": "date not found from prices"})
+		return
+	}
+
 	if err := db.Table("events").Where("instrument_id = ? and slug = ?", instrument.InstrumentID, slug).Limit(1).Find(&chartData).Error; err != nil {
 		fmt.Println(err)
 
 		EventInstrument := models.EventInstrument{
 			// временно для записи
-			Data: models.New{
-				// TypeID:    22222,
-				// Title:     "Заголовок ",
-				// Date:      revertDateFromBase("2021-09-20"),
-				// Slug:      "какой то текст ",
-				// Hash:      "фывфыв ",
-				// EventID:   121212,
-				// Source:    "какой то текст ",
-				// Shorttext: "какой то текст ",
-				// Fulltext:  "какой то текст ",
-			},
+			Data: models.New{},
 			Instrument: models.Instrument{
 				InstrumentID:   instrument.InstrumentID,
 				InstrumentName: instrument.InstrumentName,
@@ -88,6 +97,7 @@ func GetNew(c *gin.Context) {
 				Logo:           instrument.Logo,
 				Ticker:         instrument.Ticker,
 			},
+			PriceDate: datePrices,
 		}
 
 		fmt.Println("нет новостей")
@@ -115,12 +125,13 @@ func GetNew(c *gin.Context) {
 				InstrumentID:   instrument.InstrumentID,
 				InstrumentName: instrument.InstrumentName,
 				Site:           instrument.Site,
+				Type:           instrument.Type,
 				Logo:           instrument.Logo,
 				Ticker:         instrument.Ticker,
 			},
 		}
 
-		fmt.Println(EventInstrument)
+		//fmt.Println(EventInstrument)
 		c.JSON(200, EventInstrument)
 	}
 }
@@ -143,23 +154,6 @@ func GetNewsHash(c *gin.Context) {
 
 	if err := db.Table("events").Where("hash = ? ", hash).Limit(1).Find(&chartData).Error; err != nil {
 		fmt.Println(err)
-
-		//	EventInstrument := models.EventInstrument{
-		// временно для записи
-		//	Data: models.New{
-		// TypeID:    22222,
-		// Title:     "Заголовок ",
-		// Date:      revertDateFromBase("2021-09-20"),
-		// Slug:      "какой то текст ",
-		// Hash:      "фывфыв ",
-		// EventID:   121212,
-		// Source:    "какой то текст ",
-		// Shorttext: "какой то текст ",
-		// Fulltext:  "какой то текст ",
-		//	},
-
-		//	Instrument: models.Instrument{},
-		//	}
 
 		fmt.Println("нет новостей")
 		//	fmt.Println(EventInstrument)
@@ -194,6 +188,7 @@ func GetNewsHash(c *gin.Context) {
 				InstrumentName: instrument.InstrumentName,
 				Site:           instrument.Site,
 				Logo:           instrument.Logo,
+				Type:           instrument.Type,
 				Ticker:         instrument.Ticker,
 			},
 		}
@@ -227,6 +222,7 @@ func GetNews(c *gin.Context) {
 				InstrumentName: instrument.InstrumentName,
 				Site:           instrument.Site,
 				Logo:           instrument.Logo,
+				Type:           instrument.Type,
 				Ticker:         instrument.Ticker,
 			},
 		}
@@ -236,19 +232,45 @@ func GetNews(c *gin.Context) {
 	}
 }
 
-// сохраняем или обновляем новость
-func SaveNews(c *gin.Context) {
+func getErrorMsg(fe validator.FieldError) string {
+	switch fe.Tag() {
+	case "required":
+		return "This field is required"
+	case "min":
+		return "Should be min than " + fe.Param()
+	case "max":
+		return "Should be greater than " + fe.Param()
+	}
+	return "Unknown error1"
+}
 
-	fmt.Println("SaveNews")
+type ErrorMsg struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+// сохраняем или обновляем новость
+func SaveNews(context *gin.Context) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	var eventInput models.EventInput
+	eventInput := models.EventInput{}
 
-	c.Bind(&eventInput)
-	//c.Bind(&event)
+	if err := context.ShouldBindJSON(&eventInput); err != nil {
+
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			out := make([]ErrorMsg, len(ve))
+			for i, fe := range ve {
+				out[i] = ErrorMsg{fe.Field(), getErrorMsg(fe)}
+			}
+			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": out})
+		}
+		return
+	}
+
 	if eventInput.Date == "" {
-		c.JSON(400, gin.H{"error": "Fields date are empty"})
+		context.JSON(400, gin.H{"error": "Fields date are empty"})
 		return
 	}
 
@@ -256,8 +278,6 @@ func SaveNews(c *gin.Context) {
 	//return
 
 	reversed := revertDate(eventInput.Date)
-
-	fmt.Println("start")
 
 	if eventInput.Hash != "" {
 		userId := 101
@@ -276,6 +296,8 @@ func SaveNews(c *gin.Context) {
 
 		errorUpdate := db.Model(&updateData).Where("hash = ? and user_id = ? and published = ?", eventInput.Hash, userId, "0").Updates(updateData)
 		fmt.Println(errorUpdate)
+
+		fmt.Println("update new news")
 		if errorUpdate.RowsAffected == 0 {
 
 			fmt.Println("create")
@@ -283,17 +305,23 @@ func SaveNews(c *gin.Context) {
 			content := &models.EventResult{
 				InstrumentID: eventInput.InstrumentID,
 				Slug:         slug,
+				Status:       "Updates",
 				Hash:         eventInput.Hash,
 			}
-			c.JSON(201, content)
+
+			context.JSON(200, content)
+			fmt.Println("finish")
 			return
 		}
 	}
 
+	fmt.Println("eventInput.InstrumentID" + eventInput.InstrumentID)
 	error, instrument := GetInstrumentInstanse(eventInput.InstrumentID)
 
 	if !error {
-		c.JSON(400, gin.H{"error": "Fields are empty"})
+
+		context.JSON(400, gin.H{"error": "Fields are empty 2"})
+
 	} else {
 
 		if eventInput.Date != "" && eventInput.TypeID != 0 && eventInput.Source != "" && eventInput.InstrumentID != "" &&
@@ -318,18 +346,30 @@ func SaveNews(c *gin.Context) {
 				Source:       eventInput.Source,
 				Shorttext:    eventInput.Shorttext,
 				Fulltext:     eventInput.Fulltext,
-				Published:    0,
+				Published:    "0",
 			}
 
-			db.Table("events").Create(EventCreate)
+			err := db.Table("events").Create(EventCreate).Error
+
+			if err != nil {
+
+				//	return nil, err
+			}
+			fmt.Println(err)
+			fmt.Println("========err")
+
 			content := &models.EventResult{
 				InstrumentID: eventInput.InstrumentID,
 				Slug:         slug,
+				Status:       "Create",
 				Hash:         hash,
 			}
-			c.JSON(201, content)
+
+			context.JSON(200, content)
+
 		} else {
-			c.JSON(400, gin.H{"error": "Fields are empty"})
+			fmt.Println("||| 400 400")
+			context.JSON(400, gin.H{"error": "Fields are empty 1"})
 		}
 		//	return chartData
 	}
@@ -343,7 +383,9 @@ func getHash(eventInput models.EventInput) string {
 // конвертируем время
 func revertDate(date string) string {
 
-	fmt.Println("date " + date)
+	fmt.Println(" 1 date " + date)
+	fmt.Println(" 1 date " + date)
+	fmt.Println(" 1 date " + date)
 	// re := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})`)
 	// rD := (re.FindAllStringSubmatch(date, -1))
 	// return fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
@@ -364,6 +406,9 @@ func revertDateFromBase(date string) string {
 		return ""
 	}
 	fmt.Println("date:: " + date)
+	fmt.Println("date:: " + date)
+	fmt.Println("date:: " + date)
+	fmt.Println("date:: " + date)
 	// re := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})`)
 	// rD := (re.FindAllStringSubmatch(date, -1))
 	// return fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
@@ -373,7 +418,7 @@ func revertDateFromBase(date string) string {
 	fmt.Println("rD")
 	fmt.Println(rD)
 	fmt.Println(rD[0][3], rD[0][2], rD[0][1])
-	dateResult := fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
+	dateResult := fmt.Sprintf("%s/%s/%s", rD[0][3], rD[0][2], rD[0][1])
 
 	fmt.Println("dateResult:: " + dateResult)
 	return dateResult

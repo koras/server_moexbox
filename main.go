@@ -2,6 +2,7 @@ package main
 
 import (
 	"moex/config"
+	"moex/parser"
 
 	"moex/controllers"
 
@@ -28,29 +29,7 @@ func main() {
 	defer config.DisconnectDB(db)
 
 	router := gin.Default()
-
-	//config := cors.DefaultConfig()
-	//config.AllowOrigins = []string{"http://localhost:8080"}
-	//config.AddAllowMethods("OPTIONS")
-
-	// router.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"*"},
-	// 	AllowMethods:     []string{"PUT", "POST", "GET", "DELETE", "OPTIONS"},
-	// 	AllowHeaders:     []string{"Origin"},
-	// 	ExposeHeaders:    []string{"Content-Length"},
-	// 	AllowCredentials: true,
-	// 	AllowOriginFunc: func(origin string) bool {
-	// 		return origin == "https://github.com"
-	// 	},
-	// 	MaxAge: 12 * time.Hour,
-	// }))
-
-	// config := cors.DefaultConfig()
-	// config.AllowAllOrigins = true
-	// config.AllowCredentials = true
-	// config.AddAllowHeaders("authorization")
-	// router.Use(cors.New(config))
-
+	router.MaxMultipartMemory = 8 << 20 // 8 MiB
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT"},
@@ -70,7 +49,7 @@ func main() {
 	router.GET("api/events/:ticker", controllers.GetNews)
 
 	//Получаем новость для просмотра
-	router.GET("api/event/:ticker/:slug", controllers.GetNew)
+	router.GET("api/event/get/:ticker/:slug", controllers.GetNew)
 
 	//Получаем элементы для создания новой новости
 	router.GET("api/event/create/:ticker", controllers.CreateNew)
@@ -81,8 +60,18 @@ func main() {
 	// записываем новость, новую или предлагаем для редактирования
 	router.POST("api/event/save", controllers.SaveNews)
 
-	//router.Use(cors.New(config))
-	//	router.Use(cors.Default())
+	// записываем новость, новую или предлагаем для редактирования
+	router.GET("api/instruments/list", controllers.InstrumentsList)
+	// получаем информацию по инструменту
+	router.GET("api/instrument/get/:InstrumentId", controllers.InstrumentGet)
+	// получение инструмента
+	router.GET("api/data/:ticker", controllers.InstrumentTickerPrice)
+
+	// обновление инструмента
+	router.POST("api/instrument/update", controllers.InstrumentUpdate)
+
+	router.GET("api/parser/history/list", parser.GetPriceMoexHistory)
+	router.GET("api/parser/store/list", parser.GetPriceMoexOnline)
 
 	router.Run("localhost:8083")
 	//router.Run("moexbox.ru:8080")

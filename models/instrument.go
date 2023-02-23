@@ -11,14 +11,13 @@ package models
 // данные которые приходят с фронта
 type InstrumentInput struct {
 	//	EventID      string `json:"event_id"`
-	Title        string `json:"title" binding:"required"`
-	TypeID       int    `json:"type_id" binding:"required"`
-	Hash         string `json:"hash" binding:"required"`
-	Source       string `json:"source" binding:"required"`
-	InstrumentID string `json:"instrument_id" binding:"required"`
-	Date         string `json:"date" binding:"required"`
-	Shorttext    string `json:"shorttext" binding:"required"`
-	Fulltext     string `json:"fulltext" binding:"required"`
+	Site               string `form:"site" binding:"required"`
+	InstrumentName     string `form:"instrument_name" binding:"required"`
+	InstrumentFullName string `form:"instrument_full_name" binding:"required"`
+	Description        string `form:"description" binding:"required"`
+	InstrumentID       string `form:"instrument_id" binding:"required"`
+	IndustryID         string `form:"industry_id" binding:"required"`
+	Logo               string
 }
 
 // "instrumentId": 11411,
@@ -30,13 +29,25 @@ type InstrumentInput struct {
 // "currency": "$"
 // для записи в базу
 type Instrument struct {
-	InstrumentID   string `json:"instrument_id"`
-	InstrumentName string `json:"instrument_name"`
-	Description    string `json:"description"`
-	Type           string `json:"type"`
-	Ticker         string `json:"ticker"`
-	Price          int    `json:"price"`
-	Site           string `json:"site"`
-	Currency       string `json:"currency"`
-	Logo           string `json:"logo"`
+	InstrumentID        string `json:"instrument_id"`
+	InstrumentName      string `json:"instrument_name"`
+	Instrument_FullName string `json:"instrument_full_name"`
+	INSTRUMENT_CATEGORY string `json:"INSTRUMENT_CATEGORY"`
+	LIST_SECTION        string `json:"LIST_SECTION"`
+
+	CURRENCY_MOEX string  `json:"CURRENCY_MOEX"`
+	Description   string  `json:"description"`
+	Type          string  `json:"type"`
+	Ticker        string  `json:"ticker"`
+	Price         float64 `json:"price"`
+	Isin          string  `json:"isin"`
+	Site          string  `json:"site"`
+	Currency      string  `json:"currency"`
+	Logo          string  `json:"logo"`
+}
+
+type Prices struct {
+	Price float64 `gorm:"column:price" json:"price"`
+	Date  string  `gorm:"column:date" json:"date"`
+	Event New     `gorm:"foreignKey:date;references:date"`
 }
