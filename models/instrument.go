@@ -46,8 +46,9 @@ type Instrument struct {
 	Logo          string  `json:"logo"`
 }
 
-type Prices struct {
-	Price float64 `gorm:"column:price" json:"price"`
-	Date  string  `gorm:"column:date" json:"date"`
-	Event New     `gorm:"foreignKey:date;references:date"`
+type PricesInstrument struct {
+	Instruments Instrument `json:"instrument"`
+	Prices      []Prices   `json:"price"`
 }
+
+// "price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext"

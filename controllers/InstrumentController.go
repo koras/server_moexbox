@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -56,14 +57,50 @@ func GetInstrumentNameInstanse(ticker string) (bool, models.Instrument) {
 	return true, instrument
 }
 
+type DashBordResult struct {
+	Instrument []models.Instrument     `json:"instrument"`
+	Prices     []models.PricesDashBord `json:"prices"`
+}
+
 // получаем список инструментов
 func InstrumentsList(c *gin.Context) {
+
 	var instrumentsList []models.Instrument
-	if err := db.Table("instruments").Where("instruments.published = ?", "1").Find(&instrumentsList).Error; err != nil {
+	if err := db.Table("instruments").Where("instruments.published = ?", "1").Limit(10).Offset(0).Find(&instrumentsList).Error; err != nil {
 		fmt.Println(err)
+		c.JSON(200, err)
+		return
 		//c.JSON(404, gin.H{"error": "Instrument not found"})
 	}
-	c.JSON(200, instrumentsList)
+	var instrumentsArray []string
+	for i := 0; i < len(instrumentsList); i++ {
+		instrumentsArray = append(instrumentsArray, instrumentsList[i].Ticker)
+	}
+	//fmt.Println(instrumentsArray)
+	var pricesDashBord []models.PricesDashBord
+
+	now := time.Now()
+	fmt.Println("Today:", now)
+
+	after := now.AddDate(-1, 0, 0)
+
+	date := after.Format("2006-01-02")
+	fmt.Println("Subtract 1 Year:", date)
+
+	fmt.Println(instrumentsArray)
+
+	if err := db.Table("prices").Where("name  IN  (?) and date > ?", instrumentsArray, date).Find(&pricesDashBord).Error; err != nil {
+		fmt.Println(err)
+		c.JSON(200, err)
+		return
+	}
+
+	dashBordResult := DashBordResult{
+		Instrument: instrumentsList,
+		Prices:     pricesDashBord,
+	}
+
+	c.JSON(200, dashBordResult)
 }
 
 // получаем список инструментов
@@ -76,19 +113,9 @@ func InstrumentGet(c *gin.Context) {
 		fmt.Println(err)
 		//c.JSON(404, gin.H{"error": "Instrument not found"})
 	}
+
 	c.JSON(200, instrument)
 }
-
-//type New struct {
-// EventID   int    `json:"eventId"`
-// TypeID    int    `json:"typeId"`
-// Hash      string `json:"hash"`
-// Source    string `json:"source"`
-// Slug      string `json:"slug"`
-// Date      string `json:"date"`
-// Title     string `json:"title"`
-// Shorttext string `json:"shorttext"`
-// Fulltext  string `json:"fulltext"`
 
 // получаем список инструментов
 func InstrumentTickerPrice(c *gin.Context) {
@@ -100,21 +127,18 @@ func InstrumentTickerPrice(c *gin.Context) {
 		c.JSON(400, "Instrument not found")
 		return
 	}
-	// SELECT price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext
-
-	// FROM `prices`
-	// left join events on prices.date = events.date   AND events.instrument_id = '1' and published = 1
-	//  WHERE prices.name = 'RASP'
-	//  ORDER BY prices.date
-
 	var prices []models.Prices
-	// .Joins("left join emails on emails.user_id = users.id").Scan(&result{})
 	if err := db.Table("prices").Select("price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext").Joins("left join events on events.date = prices.date and events.instrument_id = ? and published = ? ", instrument.InstrumentID, 1).Where("prices.name = ? ", ticker).Order("prices.date asc").Find(&prices).Error; err != nil {
 		fmt.Println(err)
-		//c.JSON(404, gin.H{"error": "Instrument not found"})
 	}
-	//fmt.Println(prices)
-	c.JSON(200, prices)
+
+	PricesInstrument := models.PricesInstrument{
+
+		Instruments: instrument,
+		Prices:      prices,
+	}
+
+	c.JSON(200, PricesInstrument)
 }
 
 // получаем список дат торгов

@@ -13,9 +13,9 @@ type New struct {
 	TypeID    int    `json:"typeId"`
 	Hash      string `json:"hash"`
 	Source    string `json:"source"`
-	Slug      string `json:"slug"`
-	Date      string `json:"date"`
-	Title     string `json:"title"`
+	Slug      string `gorm:"column:slug" json:"slug"`
+	Date      string `gorm:"column:date" json:"date"`
+	Title     string `gorm:"column:title" json:"title"`
 	Shorttext string `json:"shorttext"`
 	Fulltext  string `json:"fulltext"`
 }
