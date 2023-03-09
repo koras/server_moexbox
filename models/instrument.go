@@ -40,6 +40,7 @@ type Instrument struct {
 	Type          string  `json:"type"`
 	Ticker        string  `json:"ticker"`
 	Price         float64 `json:"price"`
+	Mark          string  `json:"mark"`
 	Isin          string  `json:"isin"`
 	Site          string  `json:"site"`
 	Currency      string  `json:"currency"`

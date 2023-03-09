@@ -62,16 +62,34 @@ type DashBordResult struct {
 	Prices     []models.PricesDashBord `json:"prices"`
 }
 
-// получаем список инструментов
+// получаем список инструментов для дожборда
 func InstrumentsList(c *gin.Context) {
+	//typeId=1&level=2
+	typeId := c.Query("typeId")
+	level := c.Query("level")
 
 	var instrumentsList []models.Instrument
-	if err := db.Table("instruments").Where("instruments.published = ?", "1").Limit(10).Offset(0).Find(&instrumentsList).Error; err != nil {
+
+	request := db.Table("instruments").Where("instruments.published = ?", "1")
+	fmt.Println("typeId" + typeId)
+
+	if typeId != "all" && typeId != "0" {
+		request = request.Where("instruments.type = ?", typeId)
+
+		fmt.Println("level |" + level)
+		if typeId == "shares" && (level == "1" || level == "2" || level == "3") {
+			fmt.Println("level = " + level)
+			request = request.Where("instruments.level = ?", level)
+		}
+	}
+
+	if err := request.Limit(50).Offset(0).Find(&instrumentsList).Error; err != nil {
 		fmt.Println(err)
 		c.JSON(200, err)
 		return
 		//c.JSON(404, gin.H{"error": "Instrument not found"})
 	}
+
 	var instrumentsArray []string
 	for i := 0; i < len(instrumentsList); i++ {
 		instrumentsArray = append(instrumentsArray, instrumentsList[i].Ticker)
@@ -87,7 +105,7 @@ func InstrumentsList(c *gin.Context) {
 	date := after.Format("2006-01-02")
 	fmt.Println("Subtract 1 Year:", date)
 
-	fmt.Println(instrumentsArray)
+	//	fmt.Println(instrumentsArray)
 
 	if err := db.Table("prices").Where("name  IN  (?) and date > ?", instrumentsArray, date).Find(&pricesDashBord).Error; err != nil {
 		fmt.Println(err)
@@ -197,13 +215,6 @@ func InstrumentUpdate(context *gin.Context) {
 		fmt.Println("go---------------")
 		fmt.Println(err)
 	} else {
-
-		//	filename := header.Filename
-		//		fmt.Println(handler.Filename)
-
-		// fmt.Printf("Uploaded file name: %+v\n", handler.Filename)
-		// fmt.Printf("Uploaded file size %+v\n", handler.Size)
-		// fmt.Printf("File mime type %+v\n", handler.Header)
 
 		fmt.Println(" handler.Filename " + handler.Filename)
 
