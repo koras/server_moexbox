@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
@@ -19,10 +18,7 @@ var (
 )
 
 func init() {
-	errorENV := godotenv.Load()
-	if errorENV != nil {
-		panic("Failed to load env file")
-	}
+
 }
 
 func main() {
