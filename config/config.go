@@ -25,7 +25,7 @@ func ConnectDB() *gorm.DB {
 	fmt.Println("pwd : " + pwd)
 
 	if pwd == "/" {
-		pwd = "/var/www/boxinvesting.ru/backend/"
+		pwd = "/var/www/boxinvesting.ru/backend"
 	}
 
 	environmentPath := filepath.Join(pwd + "/" + env)
