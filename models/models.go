@@ -44,6 +44,17 @@ type News struct {
 	Fulltext  string `json:"fulltext"`
 }
 
+type SitemapNews struct {
+	TypeID   int    `json:"typeId"`
+	Slug     string `json:"slug"`
+	Date     string `json:"date"`
+	Title    string `json:"title"`
+	CreateAt string `json:"create_at"`
+	//	Shorttext string `json:"shorttext"`
+	//	Fulltext  string `json:"fulltext"`
+	Ticker string `json:"ticker"`
+}
+
 // данные которые приходят с фронта
 type EventInput struct {
 	//	EventID      string `json:"event_id"`

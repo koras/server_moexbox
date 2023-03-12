@@ -47,6 +47,11 @@ type Instrument struct {
 	Logo          string  `json:"logo"`
 }
 
+type SitemapInstrument struct {
+	Type   string `json:"type"`
+	Ticker string `json:"ticker"`
+}
+
 type PricesInstrument struct {
 	Instruments Instrument `json:"instrument"`
 	Prices      []Prices   `json:"price"`

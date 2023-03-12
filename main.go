@@ -73,6 +73,9 @@ func main() {
 	router.GET("api/parser/history/list", parser.GetPriceMoexHistory)
 	router.GET("api/parser/store/list", parser.GetPriceMoexOnline)
 
+	// sitemap
+	router.GET("api/sitemap/create", controllers.CreateSitemaps)
+
 	router.Run("localhost:8083")
 	//router.Run("moexbox.ru:8080")
 }

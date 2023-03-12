@@ -142,16 +142,6 @@ func GetNewsHash(c *gin.Context) {
 
 	var chartData models.Events
 
-	// fmt.Println(ticker, slug)
-	// status, instrument := GetInstrumentNameInstanse(ticker)
-
-	// if !status {
-
-	// 	fmt.Println(instrument)
-	// 	c.JSON(404, gin.H{"error": "instrument not found"})
-	// 	return
-	// }
-
 	if err := db.Table("events").Where("hash = ? ", hash).Limit(1).Find(&chartData).Error; err != nil {
 		fmt.Println(err)
 
@@ -198,7 +188,7 @@ func GetNewsHash(c *gin.Context) {
 	}
 }
 
-// получаем одну новость
+// получаем новости по тикеру
 func GetNews(c *gin.Context) {
 	ticker := c.Param("ticker")
 
