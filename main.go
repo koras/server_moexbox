@@ -76,7 +76,7 @@ func main() {
 	// sitemap
 	router.GET("api/sitemap/create", controllers.CreateSitemaps)
 
-	router.Run("localhost:8083")
+	router.Run("localhost:8093")
 	//router.Run("moexbox.ru:8080")
 }
 
