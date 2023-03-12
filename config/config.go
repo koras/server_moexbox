@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
@@ -15,21 +14,21 @@ import (
 //ConnectDB connects go to mysql database
 func ConnectDB() *gorm.DB {
 
-	env := ".env"
+	environmentPath := "/var/www/boxinvesting.ru/backend.env"
 
-	pwd, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Println("pwd : " + pwd)
+	// pwd, err := os.Getwd()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+	// fmt.Println("pwd : " + pwd)
 
-	if pwd == "/" {
-		pwd = "/var/www/boxinvesting.ru/backend"
-	}
+	// if pwd == "/" {
+	// 	pwd = "/var/www/boxinvesting.ru/backend"
+	// }
 
-	environmentPath := filepath.Join(pwd + "/" + env)
-	fmt.Println(environmentPath)
+	// environmentPath := filepath.Join(pwd + "/" + env)
+	// fmt.Println(environmentPath)
 
 	errorENV := godotenv.Load(environmentPath)
 
