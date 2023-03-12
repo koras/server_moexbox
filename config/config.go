@@ -15,15 +15,20 @@ import (
 //ConnectDB connects go to mysql database
 func ConnectDB() *gorm.DB {
 
-	env := "backend.env"
+	env := ".env"
 
-	dir := "/var/www/boxinvesting.ru/"
-	environmentPath := filepath.Join(dir + env)
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println("pwd : " + pwd)
+
+	environmentPath := filepath.Join(pwd + "/" + env)
 	fmt.Println(environmentPath)
 
 	errorENV := godotenv.Load(environmentPath)
 
-	fmt.Println(dir + env)
 	if errorENV != nil {
 		fmt.Println(errorENV)
 		panic("Failed to load env file ConnectDB")
