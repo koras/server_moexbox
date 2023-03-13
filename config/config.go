@@ -14,8 +14,9 @@ import (
 //ConnectDB connects go to mysql database
 func ConnectDB() *gorm.DB {
 
-	environmentPath := "/var/www/boxinvesting.ru/backend.env"
+	//environmentPath := "/var/www/boxinvesting.ru/backend.env"
 
+	environmentPath := "./../backend.env"
 	// pwd, err := os.Getwd()
 	// if err != nil {
 	// 	fmt.Println(err)
