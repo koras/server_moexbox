@@ -1,6 +1,8 @@
 # code_work_telegramm
 Для работы
 
+go env -w GO111MODULE=1
+
 export GO111MODULE=on
 
 go get -u github.com/gin-gonic/gin
