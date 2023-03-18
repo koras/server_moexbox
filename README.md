@@ -21,3 +21,8 @@ go get github.com/gin-contrib/cors
 //Узнавать текущую цену для конкретной ценной бумаги
 //http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=securities&securities.columns=SECID,PREVADMITTEDQUOTE
  
+systemctl start  boxinvesting.service
+systemctl status  boxinvesting.service
+ /etc/systemd/system/boxinvesting.service
+
+ 
