@@ -10,6 +10,9 @@ go get -u github.com/gin-gonic/gin
 go get github.com/gin-contrib/cors
 
 
+
+
+
   //api/instruments/list
 // https://habr.com/ru/post/495324/
 
@@ -21,6 +24,9 @@ go get github.com/gin-contrib/cors
 //Узнавать текущую цену для конкретной ценной бумаги
 //http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=securities&securities.columns=SECID,PREVADMITTEDQUOTE
  
+
+
+ go build main.go
 systemctl start  boxinvesting.service
 systemctl status  boxinvesting.service
  /etc/systemd/system/boxinvesting.service

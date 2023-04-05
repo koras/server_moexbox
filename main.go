@@ -42,35 +42,40 @@ func main() {
 	}))
 
 	// Получаем все новости для просмотра
-	router.GET("api/events/:ticker", controllers.GetNews)
+	router.GET("apidata/events/:ticker", controllers.GetNews)
+
+	// события для модерации
+	router.GET("apidata/inspected", controllers.GetEvents)
 
 	//Получаем новость для просмотра
-	router.GET("api/event/get/:ticker/:slug", controllers.GetNew)
+	router.GET("apidata/event/get/:ticker/:slug", controllers.GetNew)
 
 	//Получаем элементы для создания новой новости
-	router.GET("api/event/create/:ticker", controllers.CreateNew)
+	router.GET("apidata/event/create/:ticker", controllers.CreateNew)
 
 	// получаем новость для изменения, схранение в зависимости от публикации, новая или старая
-	router.GET("api/event/change/:hash", controllers.GetNewsHash)
+	router.GET("apidata/event/change/:hash", controllers.GetNewsHash)
+	// получаем новость для изменения, схранение в зависимости от публикации, новая или старая
+	router.GET("apidata/event/inspect/:hash", controllers.GetNewsInspectHash)
 
 	// записываем новость, новую или предлагаем для редактирования
-	router.POST("api/event/save", controllers.SaveNews)
+	router.POST("apidata/event/save", controllers.SaveNews)
 
 	// записываем новость, новую или предлагаем для редактирования
-	router.GET("api/instruments/list", controllers.InstrumentsList)
+	router.GET("apidata/instruments/list", controllers.InstrumentsList)
 	// получаем информацию по инструменту
-	router.GET("api/instrument/get/:InstrumentId", controllers.InstrumentGet)
+	router.GET("apidata/instrument/get/:InstrumentId", controllers.InstrumentGet)
 	// получение инструмента
-	router.GET("api/data/:ticker", controllers.InstrumentTickerPrice)
+	router.GET("apidata/data/:ticker", controllers.InstrumentTickerPrice)
 
 	// обновление инструмента
-	router.POST("api/instrument/update", controllers.InstrumentUpdate)
+	router.POST("apidata/instrument/update", controllers.InstrumentUpdate)
 
-	router.GET("api/parser/history/list", parser.GetPriceMoexHistory)
-	router.GET("api/parser/store/list", parser.GetPriceMoexOnline)
+	router.GET("apidata/parser/history/list", parser.GetPriceMoexHistory)
+	router.GET("apidata/parser/store/list", parser.GetPriceMoexOnline)
 
 	// sitemap
-	router.GET("api/sitemap/create", controllers.CreateSitemaps)
+	router.GET("apidata/sitemap/create", controllers.CreateSitemaps)
 
 	router.Run("localhost:8093")
 	//router.Run("moexbox.ru:8080")

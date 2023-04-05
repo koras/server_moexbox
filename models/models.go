@@ -71,18 +71,19 @@ type EventInput struct {
 // для записи в базу
 type Events struct {
 	//	EventID      string `json:"event_id"`
-	Title        string `json:"title"`
-	TypeID       int    `json:"type_id"`
-	UserId       int    `json:"user_id"`
-	Hash         string `json:"hash"`
-	EventID      int    `json:"event_id"`
-	Source       string `json:"source"`
-	Slug         string `json:"slug"`
-	InstrumentID string `json:"instrument_id"`
-	Date         string `json:"date"`
-	Shorttext    string `json:"shorttext"`
-	Fulltext     string `form:"fulltext"`
-	Published    string `form:"published"`
+	Title         string `json:"title"`
+	TypeID        int    `json:"type_id"`
+	UserId        int    `json:"user_id"`
+	Hash          string `json:"hash"`
+	EventID       int    `json:"event_id"`
+	Source        string `json:"source"`
+	Slug          string `json:"slug"`
+	InstrumentID  string `json:"instrument_id"`
+	Date          string `json:"date"`
+	Shorttext     string `json:"shorttext"`
+	ParentEventId string `json:"parent_event_id"`
+	Fulltext      string `form:"fulltext"`
+	Published     string `form:"published"`
 }
 
 // то что возвращаем

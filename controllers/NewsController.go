@@ -136,6 +136,82 @@ func GetNew(c *gin.Context) {
 	}
 }
 
+type EventsInspect struct {
+	EventsNew  models.Events     `json:"event_new"`
+	Instrument models.Instrument `json:"instrument"`
+	EventsOld  models.Events     `json:"event_old"`
+}
+
+// получаем одну новость по хэшу для редактирования
+func GetNewsInspectHash(c *gin.Context) {
+	hash := c.Param("hash")
+
+	var chartData models.Events
+	var chartDataOld models.Events
+
+	if err := db.Table("events").Where("hash = ? ", hash).Limit(1).Find(&chartData).Error; err != nil {
+		fmt.Println(err)
+
+		fmt.Println("нет новостей")
+		//	fmt.Println(EventInstrument)
+		//	c.JSON(200, EventInstrument)
+		c.JSON(404, gin.H{"error": "нет новостей"})
+	} else {
+		error, instrument := GetInstrumentIdInstanse(chartData.InstrumentID)
+		if !error {
+
+			fmt.Println(instrument)
+			c.JSON(404, gin.H{"error": "instrument not found"})
+			return
+		}
+		fmt.Println("есть новость")
+
+		if err := db.Table("events").Where("event_id = ? ", chartData.ParentEventId).Limit(1).Find(&chartDataOld).Error; err != nil {
+
+			fmt.Println("нет старых новостей", err)
+			//	fmt.Println(EventInstrument)
+			//	c.JSON(200, EventInstrument)
+		}
+
+		eventsInspect := EventsInspect{
+			EventsNew: models.Events{
+				TypeID:        chartData.TypeID,
+				Title:         chartData.Title,
+				Date:          revertDateFromBase(chartData.Date),
+				Slug:          chartData.Slug,
+				Hash:          chartData.Hash,
+				ParentEventId: chartData.ParentEventId,
+				EventID:       chartData.EventID,
+				Source:        chartData.Source,
+				Shorttext:     chartData.Shorttext,
+				Fulltext:      chartData.Fulltext,
+			},
+			Instrument: models.Instrument{
+				InstrumentID:   instrument.InstrumentID,
+				InstrumentName: instrument.InstrumentName,
+				Site:           instrument.Site,
+				Logo:           instrument.Logo,
+				Type:           instrument.Type,
+				Ticker:         instrument.Ticker,
+			},
+			EventsOld: models.Events{
+				Fulltext:  chartDataOld.Fulltext,
+				TypeID:    chartDataOld.TypeID,
+				Title:     chartDataOld.Title,
+				Date:      revertDateFromBase(chartDataOld.Date),
+				Slug:      chartDataOld.Slug,
+				Hash:      chartDataOld.Hash,
+				EventID:   chartDataOld.EventID,
+				Source:    chartDataOld.Source,
+				Shorttext: chartDataOld.Shorttext,
+			},
+		}
+
+		//	fmt.Println(eventsInspect)
+		c.JSON(200, eventsInspect)
+	}
+}
+
 // получаем одну новость по хэшу для редактирования
 func GetNewsHash(c *gin.Context) {
 	hash := c.Param("hash")
@@ -320,10 +396,6 @@ func SaveNews(context *gin.Context) {
 			slug := slug.Make(eventInput.Title)
 			// получаем уникальный хэш
 			hash := fmt.Sprintf("%x", md5.Sum([]byte(eventInput.Title+eventInput.Date+string(rand.Intn(50)))))
-			// Преобразуем дату  ПРиходит 01/03/2022 записываем 2019-12-29
-			// re := regexp.MustCompile(`([0-9]{2})/([0-9]{2})/([0-9]{4})`)
-			// rD := (re.FindAllStringSubmatch(eventInput.Date, -1))
-			// reversed := fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
 
 			EventCreate := models.EventsResult{
 				Date:         reversed,
@@ -373,9 +445,6 @@ func getHash(eventInput models.EventInput) string {
 // конвертируем время
 func revertDate(date string) string {
 
-	fmt.Println(" 1 date " + date)
-	fmt.Println(" 1 date " + date)
-	fmt.Println(" 1 date " + date)
 	// re := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})`)
 	// rD := (re.FindAllStringSubmatch(date, -1))
 	// return fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
@@ -395,10 +464,6 @@ func revertDateFromBase(date string) string {
 	if date == "" {
 		return ""
 	}
-	fmt.Println("date:: " + date)
-	fmt.Println("date:: " + date)
-	fmt.Println("date:: " + date)
-	fmt.Println("date:: " + date)
 	// re := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})`)
 	// rD := (re.FindAllStringSubmatch(date, -1))
 	// return fmt.Sprintf("%s-%s-%s", rD[0][3], rD[0][2], rD[0][1])
