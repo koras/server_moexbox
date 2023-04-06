@@ -20,7 +20,8 @@ import (
 //https://iss.moex.com/iss/engines/stock/markets/shares/boardgroups/57/securities.jsonp?iss.meta=off&iss.json=extended&callback=JSON_CALLBACK&lang=ru&security_collection=3&sort_column=VALTODAY&sort_order=desc
 
 func GetPriceMoexHistory(c *gin.Context) {
-	t := time.Date(2023, time.March, 1, 23, 0, 0, 0, time.UTC)
+
+	t := time.Date(2023, time.March, 15, 23, 0, 0, 0, time.UTC)
 	for day := 0; day <= 20; day++ {
 		t2 := t.AddDate(0, 0, day)
 		date := t2.Format("2006-01-02")

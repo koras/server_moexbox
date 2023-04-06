@@ -82,8 +82,8 @@ type Events struct {
 	Date          string `json:"date"`
 	Shorttext     string `json:"shorttext"`
 	ParentEventId string `json:"parent_event_id"`
-	Fulltext      string `form:"fulltext"`
-	Published     string `form:"published"`
+	Fulltext      string `json:"fulltext"`
+	Published     string `json:"published"`
 }
 
 // то что возвращаем
