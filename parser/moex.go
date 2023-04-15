@@ -21,8 +21,8 @@ import (
 
 func GetPriceMoexHistory(c *gin.Context) {
 
-	t := time.Date(2023, time.March, 15, 23, 0, 0, 0, time.UTC)
-	for day := 0; day <= 20; day++ {
+	t := time.Date(2023, time.March, 3, 23, 0, 0, 0, time.UTC)
+	for day := 0; day <= 60; day++ {
 		t2 := t.AddDate(0, 0, day)
 		date := t2.Format("2006-01-02")
 		fmt.Println(date)
@@ -87,16 +87,7 @@ func GetPriceMoexOnline(c *gin.Context) {
 		for _, rec := range moex.Securities {
 			//		c.JSON(200, rec)
 			if rec.Prevprice != 0 {
-
 				controllers.UpdatePrice(rec.Secid, rec.Prevprice)
-				//SECID
-				//		prices := controllers.Prices{
-				//			Name:  rec.Secid,
-				//			Date:  rec.Tradedate,
-				//			Price: rec.Close,
-				//			Value: rec.Value,
-				//		}
-				//		controllers.SaveParice(prices)
 			}
 		}
 	}
