@@ -19,5 +19,3 @@ type PricesDashBord struct {
 	Date  string  `gorm:"column:date" json:"date"`
 	Name  string  `gorm:"column:name" json:"name"`
 }
-
-// "price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext"

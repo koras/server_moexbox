@@ -56,5 +56,3 @@ type PricesInstrument struct {
 	Instruments Instrument `json:"instrument"`
 	Prices      []Prices   `json:"price"`
 }
-
-// "price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext"
