@@ -145,8 +145,13 @@ func InstrumentTickerPrice(c *gin.Context) {
 		c.JSON(400, "Instrument not found")
 		return
 	}
+
 	var prices []models.Prices
-	if err := db.Table("prices").Select("price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext").Joins("left join events on events.date = prices.date and events.instrument_id = ? and published = ? ", instrument.InstrumentID, 1).Where("prices.name = ? ", ticker).Order("prices.date asc").Find(&prices).Error; err != nil {
+
+	db = db.Table("prices").Select("price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext")
+	db = db.Joins("left join events on events.date = prices.date and events.instrument_id = ? and published = ? ", instrument.InstrumentID, 1)
+
+	if err := db.Where("prices.name = ? ", ticker).Order("prices.date asc").Find(&prices).Error; err != nil {
 		fmt.Println(err)
 	}
 
@@ -155,8 +160,29 @@ func InstrumentTickerPrice(c *gin.Context) {
 		Instruments: instrument,
 		Prices:      prices,
 	}
-
 	c.JSON(200, PricesInstrument)
+}
+
+// получаем список дат торгов
+func InstrumentOnlyDateFromPricesWeeks(ticker string, instrumentID string, date string) (bool, []models.Prices) {
+
+	var priceDate []models.Prices
+
+	//	SELECT * FROM table_name
+	//WHERE date_column BETWEEN DATE_SUB('2023-04-12', INTERVAL 1 WEEK) AND DATE_ADD('2023-04-12', INTERVAL 1 WEEK);
+
+	db = db.Table("prices")
+	db = db.Select("price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext")
+	db = db.Joins("left join events on events.date = prices.date and events.instrument_id = ? and published = ? ", instrumentID, 1)
+	db = db.Where("prices.name = ? and prices.date BETWEEN DATE_SUB(?, INTERVAL 1 WEEK) AND DATE_ADD(?, INTERVAL 1 WEEK)", ticker, date, date).Order("prices.date asc")
+	if err := db.Find(&priceDate).Error; err != nil {
+		fmt.Println("InstrumentOnlyDateFromPricesWeeks ")
+		fmt.Println(err)
+		return false, priceDate
+	}
+	return true, priceDate
+	//fmt.Println(prices)
+
 }
 
 // получаем список дат торгов

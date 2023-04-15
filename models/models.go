@@ -26,6 +26,12 @@ type EventInstrument struct {
 	PriceDate  []PriceDate `json:"date"`
 }
 
+type NewsInstrument struct {
+	Data       New        `json:"data"`
+	Instrument Instrument `json:"instrument"`
+	PriceDate  []Prices   `json:"price"`
+}
+
 type EventsInstrument struct {
 	Data       []News      `json:"data"`
 	Instrument Instrument  `json:"instrument"`

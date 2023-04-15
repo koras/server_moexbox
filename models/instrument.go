@@ -31,7 +31,7 @@ type InstrumentInput struct {
 type Instrument struct {
 	InstrumentID        string `json:"instrument_id"`
 	InstrumentName      string `json:"instrument_name"`
-	Instrument_FullName string `json:"instrument_full_name"`
+	InstrumentFullName  string `json:"instrument_full_name"`
 	INSTRUMENT_CATEGORY string `json:"INSTRUMENT_CATEGORY"`
 	LIST_SECTION        string `json:"LIST_SECTION"`
 
