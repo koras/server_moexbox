@@ -107,7 +107,8 @@ func InstrumentsList(c *gin.Context) {
 
 	//	fmt.Println(instrumentsArray)
 
-	if err := db.Table("prices").Where("name  IN  (?) and date > ?", instrumentsArray, date).Find(&pricesDashBord).Error; err != nil {
+	if err := db.Table("prices").Where("name  IN  (?) and `prices`.`date` > ?", instrumentsArray, date).Find(&pricesDashBord).Error; err != nil {
+		fmt.Println("get pricess info")
 		fmt.Println(err)
 		c.JSON(200, err)
 		return
@@ -140,14 +141,27 @@ func InstrumentTickerPrice(c *gin.Context) {
 	ticker := c.Param("ticker")
 
 	var instrument models.Instrument
-	if err := db.Table("instruments").Where("instruments.ticker = ?", ticker).Find(&instrument).Error; err != nil {
+	if err := db.Table("instruments").
+		Where("instruments.ticker = ?", ticker).
+		Find(&instrument).Error; err != nil {
+
+		fmt.Println("get instrument ")
 		fmt.Println(err)
-		c.JSON(400, "Instrument not found")
+		c.JSON(400, err)
 		return
 	}
+
 	var prices []models.Prices
-	if err := db.Table("prices").Select("price, prices.date, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext").Joins("left join events on events.date = prices.date and events.instrument_id = ? and published = ? ", instrument.InstrumentID, 1).Where("prices.name = ? ", ticker).Order("prices.date asc").Find(&prices).Error; err != nil {
+
+	if err := db.Table("prices").
+		Select("price, `prices`.`date`, events.title, events.slug, events.hash, events.type_id, events.event_id, source, instrument_id, shorttext").
+		Joins("left join events on events.date = `prices`.`date` and events.instrument_id = ? and published = ? ", instrument.InstrumentID, 1).
+		Where("prices.name = ? ", ticker).Order(" `prices`.`date` asc ").Find(&prices).Error; err != nil {
+
+		fmt.Println("InstrumentTickerPrice")
 		fmt.Println(err)
+		c.JSON(400, "Instrument not found  InstrumentTickerPrice 2")
+		return
 	}
 
 	PricesInstrument := models.PricesInstrument{
@@ -155,8 +169,31 @@ func InstrumentTickerPrice(c *gin.Context) {
 		Instruments: instrument,
 		Prices:      prices,
 	}
-
 	c.JSON(200, PricesInstrument)
+}
+
+// получаем список дат торгов
+func InstrumentOnlyDateFromPricesWeeks(ticker string, instrumentID string, date string) (bool, []models.Prices) {
+
+	var priceDate []models.Prices
+
+	//	SELECT * FROM table_name
+	//WHERE date_column BETWEEN DATE_SUB('2023-04-12', INTERVAL 1 WEEK) AND DATE_ADD('2023-04-12', INTERVAL 1 WEEK);
+
+	if err := db.Table("prices").
+		Select("price, `prices`.`date`, events.title, events.slug, events.hash, events.type_id, events.event_id,source,instrument_id,shorttext").
+		Joins("left join events on events.date = `prices`.`date` and events.instrument_id = ? and published = ? ", instrumentID, 1).
+		Where("prices.name = ? and `prices`.`date` BETWEEN DATE_SUB(?, INTERVAL 1 WEEK) AND DATE_ADD(?, INTERVAL 1 WEEK)", ticker, date, date).
+		Order("`prices`.`date` ASC").
+		Find(&priceDate).Error; err != nil {
+
+		fmt.Println("InstrumentOnlyDateFromPricesWeeks ")
+		fmt.Println(err)
+		return false, priceDate
+	}
+	return true, priceDate
+	//fmt.Println(prices)
+
 }
 
 // получаем список дат торгов

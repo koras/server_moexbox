@@ -84,6 +84,8 @@ func GetNew(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("instrument.InstrumentName" + instrument.InstrumentName)
+
 	if err := db.Table("events").Where("instrument_id = ? and slug = ?", instrument.InstrumentID, slug).Limit(1).Find(&chartData).Error; err != nil {
 		fmt.Println(err)
 
@@ -119,16 +121,29 @@ func GetNew(c *gin.Context) {
 			Fulltext:  chartData.Fulltext,
 		}
 
-		EventInstrument := models.EventInstrument{
+		status, datePrices := InstrumentOnlyDateFromPricesWeeks(instrument.Ticker, instrument.InstrumentID, chartData.Date)
+		if !status {
+
+			fmt.Println(instrument)
+			c.JSON(404, gin.H{"error": "date not found from prices"})
+			return
+		}
+
+		EventInstrument := models.NewsInstrument{
 			Data: EventCreate,
 			Instrument: models.Instrument{
-				InstrumentID:   instrument.InstrumentID,
-				InstrumentName: instrument.InstrumentName,
-				Site:           instrument.Site,
-				Type:           instrument.Type,
-				Logo:           instrument.Logo,
-				Ticker:         instrument.Ticker,
+				InstrumentID:       instrument.InstrumentID,
+				InstrumentName:     instrument.InstrumentName,
+				InstrumentFullName: instrument.InstrumentFullName,
+				Description:        instrument.Description,
+				Price:              instrument.Price,
+				Site:               instrument.Site,
+				Type:               instrument.Type,
+				Mark:               instrument.Mark,
+				Logo:               instrument.Logo,
+				Ticker:             instrument.Ticker,
 			},
+			PriceDate: datePrices,
 		}
 
 		//fmt.Println(EventInstrument)
