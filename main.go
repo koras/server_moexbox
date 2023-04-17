@@ -63,6 +63,10 @@ func main() {
 
 	// записываем новость, новую или предлагаем для редактирования
 	router.GET("apidata/instruments/list", controllers.InstrumentsList)
+
+	// записываем новость, новую или предлагаем для редактирования
+	router.GET("apidata/trend/list", controllers.TrendList)
+
 	// получаем информацию по инструменту
 	router.GET("apidata/instrument/get/:InstrumentId", controllers.InstrumentGet)
 	// получение инструмента
