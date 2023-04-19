@@ -70,8 +70,8 @@ type EventInput struct {
 	Source       string `json:"source" binding:"required,min=5,max=250"`
 	InstrumentID string `json:"instrument_id"`
 	Date         string `json:"date" binding:"required,min=10,max=11"`
-	Shorttext    string `json:"shorttext" binding:"required,min=150,max=250"`
-	Fulltext     string `json:"fulltext" binding:"required,min=255,max=2500"`
+	Shorttext    string `json:"shorttext" binding:"required,min=100,max=250"`
+	Fulltext     string `json:"fulltext" binding:"required,min=255,max=3500"`
 }
 
 // для записи в базу

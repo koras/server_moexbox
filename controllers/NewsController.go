@@ -52,11 +52,11 @@ func CreateNew(c *gin.Context) {
 			Site:           instrument.Site,
 			Logo:           instrument.Logo,
 			Ticker:         instrument.Ticker,
+			Type:           instrument.Type,
 		},
 		PriceDate: datePrices,
 	}
 
-	fmt.Println(EventInstrument)
 	c.JSON(200, EventInstrument)
 }
 
