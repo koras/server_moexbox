@@ -313,16 +313,26 @@ func GetNews(c *gin.Context) {
 	}
 }
 
-func getErrorMsg(fe validator.FieldError) string {
+var myMapInfo = map[string]string{
+	"Title ":    "Заголовок",
+	"TypeID":    "Событие",
+	"Source":    "Источник",
+	"Date":      "Дата",
+	"Shorttext": "Короткое описание",
+	"Fulltext":  "Полное описание",
+}
+
+func getErrorMsg(fe validator.FieldError, field string) string {
+
 	switch fe.Tag() {
 	case "required":
-		return "This field is required"
+		return myMapInfo[field] + "является обязательным полем для заполнения"
 	case "min":
-		return "Should be min than " + fe.Param()
+		return myMapInfo[field] + " : текст слишком короткий, не менее " + fe.Param() + " символов"
 	case "max":
-		return "Should be greater than " + fe.Param()
+		return myMapInfo[field] + " : текст слишком большой, не более " + fe.Param() + " символов"
 	}
-	return "Unknown error1"
+	return "Unknown error"
 }
 
 type ErrorMsg struct {
@@ -343,7 +353,7 @@ func SaveNews(context *gin.Context) {
 		if errors.As(err, &ve) {
 			out := make([]ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = ErrorMsg{fe.Field(), getErrorMsg(fe)}
+				out[i] = ErrorMsg{fe.Field(), getErrorMsg(fe, fe.Field())}
 			}
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": out})
 		}

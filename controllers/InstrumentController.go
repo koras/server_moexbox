@@ -235,7 +235,7 @@ func InstrumentUpdate(context *gin.Context) {
 		if errors.As(err, &ve) {
 			out := make([]ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = ErrorMsg{fe.Field(), getErrorMsg(fe)}
+				out[i] = ErrorMsg{fe.Field(), getErrorMsg(fe, fe.Field())}
 
 				//	fmt.Println(getErrorMsg(fe))
 				//	context.JSON(200, fe)
