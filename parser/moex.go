@@ -21,7 +21,7 @@ import (
 
 func GetPriceMoexHistory(c *gin.Context) {
 
-	t := time.Date(2023, time.April, 3, 23, 0, 0, 0, time.UTC)
+	t := time.Date(2023, time.May, 3, 23, 0, 0, 0, time.UTC)
 	for day := 0; day <= 60; day++ {
 		t2 := t.AddDate(0, 0, day)
 		date := t2.Format("2006-01-02")

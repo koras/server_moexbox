@@ -29,6 +29,11 @@ go get github.com/gin-contrib/cors
  go build main.go
 systemctl start  boxinvesting.service
 systemctl status  boxinvesting.service
+
+sudo iptables -A INPUT -p tcp --dport 8000 -s 127.0.0.1 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 8000 -j DROP
+iptables-save > /etc/iptables/rules.v4
+
  /etc/systemd/system/boxinvesting.service
 
  
