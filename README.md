@@ -36,4 +36,4 @@ iptables-save > /etc/iptables/rules.v4
 
  /etc/systemd/system/boxinvesting.service
 
- 
+ https://boxinvesting.ru/apidata/parser/history/list
